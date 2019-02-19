@@ -1,7 +1,8 @@
 import React from 'react'
 import Dropzone from 'react-dropzone'
+import axios from 'axios'
 import { Box, Stack, Meter, Text, Grommet} from 'grommet'
-var Tesseract = window.Tesseract;
+const Tesseract = window.Tesseract;
 
 const theme = {
   global: {
@@ -17,11 +18,10 @@ const theme = {
 };
 
 const ProgMeter = ({status, progress}) => {
-  
-  console.log(typeof progress)
-  const percent = (progress*100).toFixed(0) 
+  const val = progress ? progress : 0
+  const percent = parseInt((val*100).toFixed(0)) 
   return(
-    <Box align="center" pad="large">
+    <Box  align="center" pad="large">
       <Stack anchor="center">
         <Meter
           type="circle"
@@ -39,7 +39,7 @@ const ProgMeter = ({status, progress}) => {
       </Stack>
       <Text>{status}</Text>
     </Box>
-)
+  )
 }
 
 class Uploader extends React.Component {
@@ -61,11 +61,12 @@ class Uploader extends React.Component {
           OCRStatus: message.status,
           OCRProgress: message.progress
         })
-        console.log(this.state)
+        
       })
       .then(res => {
         this.setState({ progDisplay: false })
         console.log(res)
+        // const newRes = 
       })
       return null
     }) 
