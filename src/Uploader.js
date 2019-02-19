@@ -1,6 +1,8 @@
 import React from 'react'
 import Dropzone from 'react-dropzone'
-import { Box, Grommet} from 'grommet'
+import { Box, Stack, Meter, Text, Grommet} from 'grommet'
+var Tesseract = window.Tesseract;
+
 const theme = {
   global: {
    colors: {
@@ -13,24 +15,70 @@ const theme = {
     },
   },
 };
+
+const ProgMeter = ({status, progress}) => {
+  
+  console.log(typeof progress)
+  const percent = (progress*100).toFixed(0) 
+  return(
+    <Box align="center" pad="large">
+      <Stack anchor="center">
+        <Meter
+          type="circle"
+          background="light-2"
+          values={[{ value: percent }]}
+          size="xsmall"
+          thickness="small"
+        />
+        <Box direction="row" align="center" pad={{ bottom: "xsmall" }}>
+          <Text size="xlarge" weight="bold">
+            {percent}
+          </Text>
+          <Text size="small">%</Text>
+        </Box>
+      </Stack>
+      <Text>{status}</Text>
+    </Box>
+)
+}
+
 class Uploader extends React.Component {
 
   state = {
     disabled: true,
+    progDisplay: false,
+    OCRStatus: null,
+    OCRProgress: null,
     files: []
   }
 
   onDrop = (files) => {
-    this.setState({files});
+    files.map(file => {
+      Tesseract.recognize(file)
+      .progress(message => {
+        this.setState({
+          progDisplay: true,
+          OCRStatus: message.status,
+          OCRProgress: message.progress
+        })
+        console.log(this.state)
+      })
+      .then(res => {
+        this.setState({ progDisplay: false })
+        console.log(res)
+      })
+      return null
+    }) 
   }
 
-  toggleDisabled= () =>  {
-    this.setState({
-      disabled: !this.state.disabled
-    })
-  }
+  // toggleDisabled = () =>  {
+  //   this.setState({
+  //     disabled: !this.state.disabled
+  //   })
+  // }
 
   render() {
+    const { OCRProgress, OCRStatus, progDisplay } = this.state
     const files = this.state.files.map(file => (
       <li key={file.name}>
         {file.name} - {file.size} bytes
@@ -45,6 +93,13 @@ class Uploader extends React.Component {
         pad={{ left: 'medium', right: 'small', vertical: 'small' }}
         elevation='medium'
         style={{ zIndex: '1' }}>
+        {
+          progDisplay &&  
+          <ProgMeter
+            status={OCRStatus}
+            progress={OCRProgress}
+          />
+        }
         <div className="dropzone">
           <Dropzone
             onDrop={this.onDrop.bind(this)}
@@ -52,7 +107,7 @@ class Uploader extends React.Component {
             {({getRootProps, getInputProps}) => (
               <div {...getRootProps()}>
                 <input {...getInputProps()} />
-                 <h1>Drop files here, or click to select files</h1>
+                 <h2>Drop files here, or click to select files</h2>
               </div>
             )}
           </Dropzone>
@@ -62,10 +117,8 @@ class Uploader extends React.Component {
           <ul>{files}</ul>
         </aside>
       </Box>
-      </Grommet>
-      
+      </Grommet> 
     );
   }
 }
-
 export default Uploader
