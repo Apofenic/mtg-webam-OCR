@@ -2,8 +2,18 @@ import React from 'react'
 import Dropzone from 'react-dropzone'
 import axios from 'axios'
 import { Box, Stack, Meter, Text, Grommet} from 'grommet'
+
 const Tesseract = window.Tesseract;
 
+/*
+this RegExp has the following pattern matches( from first to last): 
+  - 2 or more consecutive white spaces
+  - 2 or more consecutive uppercase characters
+  - any special character 
+  - any single character between 2 white spaces
+*/
+const ocrRegEx = /[\s]{2,}|[A-Z]{2,}|[^\w \xC0-\xFF]|\b[a-zA-Z0-9_]{1}\b/g
+const filterRX = /[0-9\s]*/g
 const theme = {
   global: {
    colors: {
@@ -53,8 +63,8 @@ class Uploader extends React.Component {
   }
 
   onDrop = (files) => {
-    files.map(file => {
-      Tesseract.recognize(file)
+    return files.map(file => {
+      return Tesseract.recognize(file)
       .progress(message => {
         this.setState({
           progDisplay: true,
@@ -65,10 +75,25 @@ class Uploader extends React.Component {
       })
       .then(res => {
         this.setState({ progDisplay: false })
-        console.log(res)
-        // const newRes = 
+        const specFilter = res.lines.map(line => 
+          line.text.replace(ocrRegEx, '')
+        )
+        .map(str => str.replace(ocrRegEx, ''))
+        .filter(x => x)
+        console.log({specFilter})
+        
+        // const singleFilter = specFilter.map(newLine => {
+        //   return newLine.replace(sglCharRegEx, match => {
+        //     if(match !== "A" || match !== "I" || match !== "a") {
+        //       return ""
+        //     }
+        //     console.log(match)
+        //     return match
+        //   })
+        // }).filter(n => n)
+        // console.log({singleFilter})
+        return specFilter  
       })
-      return null
     }) 
   }
 
