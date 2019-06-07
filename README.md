@@ -4,4 +4,4 @@
 
 
 - upload a photo of a magic cardto log api results in the console.
-- WIP (OCR seems to need a prefect image to work)
+- WIP (OCR seems to need a perfect image to work)
